@@ -1,0 +1,1 @@
+﻿window.onfocus = function () { document.getElementById("refreshThisPlease").focus(); }

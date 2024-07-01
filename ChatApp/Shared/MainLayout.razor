@@ -1,0 +1,41 @@
+﻿@using Services
+@inherits LayoutComponentBase
+
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <MudText Typo="Typo.h5" Class="ml-3">Application</MudText>
+        <MudSpacer />
+
+        <LoginDisplay />
+
+    </MudAppBar>
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+        <NavMenu />
+    </MudDrawer>
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>
+@code
+{
+
+    #region Variables
+    bool _drawerOpen = true;
+    #endregion
+
+    #region Methods
+    /// <summary>
+    /// Method that controls the display of the sidebar
+    /// </summary>
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+    #endregion
+
+}

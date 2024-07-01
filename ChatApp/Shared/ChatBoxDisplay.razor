@@ -1,0 +1,68 @@
+﻿@using Models
+@using Services
+
+@inject LoginService loginService
+@inject UserManagementService userManagementService
+
+<MudContainer Fixed="true" Class="d-flex flex-row mb-3">
+    <MudGrid Class="@StyleCardPosition(MessageToDisplay.IsCurrentUser, "justify-end", "")">
+        <MudItem xs="12" md="6" lg="4">
+            <MudCard Class="mr-5" Style="width: 18rem">
+                <MudCardHeader>
+                    <CardHeaderAvatar>
+                        <MudAvatar Image="@GetPhotoByUsername(MessageToDisplay.User.Username)" />
+                    </CardHeaderAvatar>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.body1">@(MessageToDisplay.IsCurrentUser ? "You" : MessageToDisplay.User.DisplayName)</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudDivider />
+                <MudCardContent>
+                    <MudText Class="mb-2" Typo="Typo.h6">@MessageToDisplay.Message</MudText>
+                    <MudDivider />
+                    <MudText Class="mt-2" Typo="Typo.body2">Date Sent: @MessageToDisplay.DateSent</MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+
+    #region Properties
+    [Parameter] public UserMessage MessageToDisplay { get; set; }
+    public User User { get; set; }
+    #endregion
+
+    #region Methods
+    /// <summary>
+    /// Method that provides the current styling depending on the User that sends the message
+    /// </summary>
+    /// <param name="flag">Boolean that indicated if the User is the one logged in or not</param>
+    /// <param name="value1">Value representing a Class to be added in case it is the User logged in</param>
+    /// <param name="value2">Value representing a Class to be added in case it is NOT the User logged in</param>
+    /// <returns></returns>
+    private string StyleCardPosition(bool flag, string value1, string value2)
+    {
+        return flag ? value1 : value2;
+    }
+
+    /// <summary>
+    /// Method that will get the path of the logged in User's photo
+    /// </summary>
+    /// <param name="username">Username of the logged in user</param>
+    /// <returns></returns>
+    private string GetPhotoByUsername(string username)
+    {
+        foreach (var item in userManagementService.UsersList)
+        {
+            if (String.Equals(username, item.Username))
+            {
+                return item.Photo;
+            }
+        }
+
+        return String.Empty;
+    }
+    #endregion
+}

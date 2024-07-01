@@ -1,0 +1,117 @@
+﻿@page "/"
+
+@using Models
+@using Services
+
+@inject NavigationManager NavigationManager
+@inject LoginService loginService
+@inject ChatHubService chatHubService
+@inject UserManagementService userManagmentService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@inject IConfiguration Configuration
+
+<AuthorizeView>
+    <Authorized>
+        <div id="refreshThisPlease" class="container overflow-auto shadow-sm p-3 mb-5 bg-white rounded" style="height:70vh;">
+            @if (!chatHubService.UserMessages.Any())
+            {
+                <p>No messages yet, start chatting!</p>
+            }
+
+            @foreach (var message in chatHubService.UserMessages)
+            {
+                <ChatBoxDisplay MessageToDisplay=@(message) />
+            }
+        </div>
+
+        <hr />
+
+        <MudContainer Fixed="true" Class="d-flex flex-row">
+            <MudGrid>
+                <MudItem xs="6" md="3" lg="4">
+                    <MudTextField Label="Your name"
+                                  Variant="Variant.Outlined" @bind-Value="usernameInput" ReadOnly="@isUserReadonly" />
+                </MudItem>
+                <MudItem xs="12" md="6" lg="4">
+                    <MudTextField Label="Start typing..."
+                                  Variant="Variant.Outlined" @bind-Value="messageInput" @onkeyup="Enter" />
+                </MudItem>
+                <MudItem xs="6" md="3" lg="4" Class="align-self-center">
+                    <MudButton Variant="Variant.Filled" EndIcon="@Icons.Material.Filled.Send" Color="Color.Primary" Size="Size.Large" @onclick="Send">Send</MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
+    </Authorized>
+    <NotAuthorized>
+        <span>You're not a valid User.</span>
+    </NotAuthorized>
+</AuthorizeView>
+
+<hr />
+
+@code
+{
+    #region Variables
+    private string? usernameInput;
+    private string? messageInput;
+    private bool isUserReadonly = false;
+    #endregion
+
+
+    #region Methods
+    /// <summary>
+    /// Method that provides the necessary connection and message exchange
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        if (chatHubService.UserMessages == null) chatHubService.UserMessages = new List<UserMessage>();
+
+        int countMessages = chatHubService.UserMessages.Count;
+
+        var userAuthenticated = await loginService.Login(Configuration);
+
+        if (userAuthenticated != null)
+        {
+            usernameInput = loginService.User?.DisplayName;
+            isUserReadonly = true;
+        }
+
+        //Everytime the Singleton is changed, this notification event is triggered to update every instance of the app to show the current information
+        chatHubService.Notify += () => InvokeAsync(StateHasChanged);
+        await base.OnInitializedAsync();
+
+    }
+
+    /// <summary>
+    /// Method that send the message
+    /// </summary>
+    /// <returns></returns>
+    private async Task Send()
+    {
+        if (!string.IsNullOrEmpty(usernameInput) && !string.IsNullOrEmpty(messageInput))//&& hubConnection != null)
+        {
+            await chatHubService.Send(new UserMessage() { User = loginService.User, Message = messageInput, IsCurrentUser = (await loginService.AuthInfo()).User?.Identity?.Name == String.Concat("G02\\", loginService.User?.Username), DateSent = DateTime.Now });
+
+            isUserReadonly = true;
+
+            messageInput = string.Empty;
+
+
+        }
+    }
+
+    /// <summary>
+    /// Method that calls the Send method on clicking Enter key in case there's text on the textarea
+    /// </summary>
+    private async Task Enter(KeyboardEventArgs e)
+    {
+        if ((e.Code == "Enter" || e.Code == "NumpadEnter") && !string.IsNullOrEmpty(messageInput))
+        {
+            await Send();
+        }
+    }
+
+
+    #endregion
+}

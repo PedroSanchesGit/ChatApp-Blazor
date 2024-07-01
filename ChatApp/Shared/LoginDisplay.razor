@@ -1,0 +1,12 @@
+﻿@using Services
+
+@inject LoginService loginService
+<AuthorizeView>
+ <Authorized>
+ <MudAvatar Image="@(loginService.User?.Photo)" />
+ <MudText Style="@($"color:white")" Typo="Typo.h5" Class="ml-3">@(loginService.User?.DisplayName) : @(loginService.User?.Title)</MudText>
+ </Authorized>
+ <NotAuthorized>
+ <MudText Style="@($"color:red")" Typo="Typo.h5" Class="ml-3">Unauthorized</MudText>
+ </NotAuthorized>
+</AuthorizeView>
